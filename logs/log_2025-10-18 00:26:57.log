@@ -1,0 +1,4 @@
+2025-10-18 00:26:57,305 - INFO - __main__ 43 - Inicio de ejecución
+2025-10-18 00:26:57,306 - INFO - __main__ 32 - Cargando dataset desde datasets/data_test.csv
+2025-10-18 00:26:57,308 - INFO - __main__ 35 - Dataset cargado con 3 filas y 3 columnas
+2025-10-18 00:26:57,310 - INFO - __main__ 54 - >>> Ejecución finalizada. Revisar logs para más detalle. log_2025-10-18 00:26:57.log

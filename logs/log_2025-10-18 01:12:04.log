@@ -1,5 +1,0 @@
-2025-10-18 01:12:04,973 - INFO - __main__ 27 - Inicio de ejecución
-2025-10-18 01:12:04,973 - INFO - src.loader 13 - Cargando dataset desde datasets/data_test.csv
-2025-10-18 01:12:04,977 - INFO - src.loader 16 - Dataset cargado con 3 filas y 3 columnas
-2025-10-18 01:12:04,977 - INFO - src.features 26 - Realizando feature engineering con 2 lags para 1 atributos
-2025-10-18 01:12:04,978 - DEBUG - src.features 46 - Consulta SQL: SELECT *, lag(valor, 1) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes) AS valor_lag_1, lag(valor, 2) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes) AS valor_lag_2 FROM df

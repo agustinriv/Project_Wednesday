@@ -1,7 +1,0 @@
-2025-10-18 01:19:17,907 - INFO - __main__ 27 - Inicio de ejecución
-2025-10-18 01:19:17,907 - INFO - src.loader 13 - Cargando dataset desde datasets/competencia_01_test.csv
-2025-10-18 01:19:17,912 - INFO - src.loader 16 - Dataset cargado con 10 filas y 156 columnas
-2025-10-18 01:19:17,912 - INFO - src.features 26 - Realizando feature engineering con 2 lags para 1 atributos
-2025-10-18 01:19:17,913 - DEBUG - src.features 46 - Consulta SQL: SELECT *, lag(ctrx_quarter, 1) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes) AS ctrx_quarter_lag_1, lag(ctrx_quarter, 2) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes) AS ctrx_quarter_lag_2 FROM df
-2025-10-18 01:19:18,043 - INFO - src.features 56 - Feature engineering completado. DataFrame resultante con 158 columnas
-2025-10-18 01:19:18,044 - INFO - __main__ 44 - >>> Ejecución finalizada. Revisar logs para más detalle. log_2025-10-18 01:19:17.log

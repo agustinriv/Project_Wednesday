@@ -1,0 +1,33 @@
+# config.yaml
+STUDY_NAME : "lgb_optimization_competencia01"
+
+competencia01:
+    DATA_PATH: "datasets/competencia_01.csv"
+    SEMILLA: [12,13,14,15,16]
+    MES_TRAIN: [202102]
+    MES_TEST: [202104]
+    FINAL_TRAIN: [202101,202102,202103,202104]
+    FINAL_PREDIC: [202106]
+    GANANCIA_ACIERTO: 780000
+    COSTO_ESTIMULO: 20000
+    PARAMETROS_LGB:
+        num_leaves:
+            min: 20
+            max: 300
+            type: int
+        learning_rate:
+            min: 0.01
+            max: 0.3
+            type: float
+        min_data_in_leaf:
+            min: 20
+            max: 2500
+            type: int
+        feature_fraction:
+            min: 0.1
+            max: 1.0
+            type: float
+        bagging_fraction:
+            min: 0.5
+            max: 1.0
+            type: float

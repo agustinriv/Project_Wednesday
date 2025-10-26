@@ -13,7 +13,7 @@ try:
         _cfg = _cfgGeneral["competencia01"]
 
         STUDY_NAME = _cfgGeneral.get("STUDY_NAME", "Wednesday")
-        DATA_PATH = _cfg.get("DATA_PATH", "datasets/competencia_01.csv")
+        DATA_PATH = _cfg.get("DATA_PATH", "../datasets/competencia_01.csv")
         SEMILLA = _cfg.get("SEMILLA", [42])
         MES_TRAIN = _cfg.get("MES_TRAIN", 202102)
         MES_TEST = _cfg.get("MES_TEST", 202104)

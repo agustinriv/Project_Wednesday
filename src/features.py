@@ -4,6 +4,30 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def obtener_columnas_validas(df: pd.DataFrame,
+                             excluir: Optional[List[str]] = None) -> List[str]:
+    """
+    Devuelve la lista de columnas numéricas o válidas para feature engineering.
+    
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame con los datos
+    excluir : list, optional
+        Lista de columnas a excluir (por defecto: identificadores y targets)
+    
+    Returns
+    -------
+    list
+        Lista de columnas seleccionadas
+    """
+    if excluir is None:
+        excluir = ['numero_de_cliente', 'foto_mes', 'clase_ternaria', 'target']
+    
+    columnas = [c for c in df.columns if c not in excluir]
+    
+    return columnas
+
 def feature_engineering_lag(df: pd.DataFrame, columnas: list[str], cant_lag: int = 1) -> pd.DataFrame:
     """
     Genera variables de lag para los atributos especificados utilizando SQL.
@@ -58,8 +82,6 @@ def feature_engineering_lag(df: pd.DataFrame, columnas: list[str], cant_lag: int
     return df
 
 from typing import List, Optional
-
-logger = logging.getLogger(__name__)
 
 def feature_engineering_delta(
     df: pd.DataFrame,
@@ -129,3 +151,4 @@ def feature_engineering_delta(
 
     logger.info(f"Feature engineering (deltas) completado. Columnas ahora: {df_out.shape[1]}")
     return df_out
+

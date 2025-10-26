@@ -7,14 +7,11 @@ logging.getLogger("matplotlib").setLevel(logging.WARNING)
 logging.getLogger("matplotlib.font_manager").setLevel(logging.WARNING)
 
 from src.loader import cargar_datos, convertir_clase_ternaria_a_target
-from src.features import feature_engineering_lag, feature_engineering_delta
+from src.features import feature_engineering_lag, feature_engineering_delta, obtener_columnas_validas
 from src.optimization_cv import optimizar_con_cv
 from src.testing import evaluar_en_test
 from src.best_params import cargar_mejores_hiperparametros
 
-#from src.final_training import preparar_datos_entrenamiento_final, generar_predicciones_finales, entrenar_modelo_final
-#from src.output_manager import guardar_predicciones_finales
-#from src.best_params import obtener_estadisticas_optuna
 from src.config import *
 
 ## config basico logging
@@ -42,7 +39,7 @@ def main():
     df = cargar_datos(DATA_PATH)
 
     # 2. Feature Engineering
-    atributos = ["mrentabilidad"]
+    atributos = obtener_columnas_validas(df)
     cant_lag = 2
     cant_delta = 2
     df_fe = feature_engineering_lag(df, atributos, cant_lag)
@@ -106,7 +103,7 @@ def main():
     #logger.info(f"🎯 Períodos de entrenamiento: {FINAL_TRAIN}")
     #logger.info(f"🔮 Período de predicción: {FINAL_PREDIC}")
     #logger.info(f"📁 Archivo de salida: {archivo_salida}")
-    logger.info(f"📝 Log detallado: logs/{nombre_log}")
+    #logger.info(f"📝 Log detallado: logs/{nombre_log}")
 
     logger.info(f">>> Ejecución finalizada. Revisar logs para mas detalles.")
 

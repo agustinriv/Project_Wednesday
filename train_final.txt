@@ -31,19 +31,9 @@ def main():
     best_iteration = 200
     CORTE_OPTIMO = 10000  
 
-    # Cargar datos
+    # Cargar y preparar datos
     df = cargar_datos(DATA_PATH)
-
-    # Agrego pesos
-    df['clase_peso'] = 1.0
-    df.loc[df['clase_ternaria'] == 'BAJA+2', 'clase_peso'] = 1.00002
-    df.loc[df['clase_ternaria'] == 'BAJA+1', 'clase_peso'] = 1.00001
-
-    # Clase binaria
-    df['clase_binaria2'] = 0
-    df['clase_binaria2'] = np.where(df['clase_ternaria'] == 'CONTINUA', 0, 1)
-
-    # Feature Engineering
+    df = convertir_clase_ternaria_a_target(df)
     atributos = obtener_columnas_validas(df)
     df = feature_engineering_lag(df, atributos, 2)
     df = feature_engineering_delta(df, atributos, 2)
@@ -67,11 +57,10 @@ def main():
 
     # Preparo datos para entrenamiento
     train_final = df[df['foto_mes'].isin(TRAIN_f)]
-    X_final = train_final.drop(columns=['clase_ternaria','clase_peso','clase_binaria2'])
-    y_final = train_final['clase_binaria2']
-    w_final = train_final['clase_peso']
+    X_final = train_final.drop(columns=['clase_ternaria','target'])
+    y_final = train_final['clase_ternaria']
 
-    dtrain_final = lgb.Dataset(X_final, label=y_final, weight=w_final)
+    dtrain_final = lgb.Dataset(X_final, label=y_final)
 
     # Entreno modelo final
     model_final = lgb.train(params,

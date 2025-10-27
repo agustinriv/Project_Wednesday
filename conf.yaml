@@ -3,7 +3,7 @@ STUDY_NAME : "lgb_optimization_competencia01"
 
 competencia01:
     DATA_PATH: "../datasets/competencia_01.csv"
-    SEMILLA: [12,13,14,15,16]
+    SEMILLA: [100343, 100103, 100109, 100129, 100057]
     MES_TRAIN: [202102]
     MES_TEST: [202104]
     FINAL_TRAIN: [202101,202102,202103,202104]

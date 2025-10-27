@@ -14,7 +14,7 @@ try:
 
         STUDY_NAME = _cfgGeneral.get("STUDY_NAME", "Wednesday")
         DATA_PATH = _cfg.get("DATA_PATH", "../datasets/competencia_01.csv")
-        SEMILLA = _cfg.get("SEMILLA", [42])
+        SEMILLA = _cfg.get("SEMILLA", [100343, 100103, 100109, 100129, 100057])
         MES_TRAIN = _cfg.get("MES_TRAIN", 202102)
         MES_TEST = _cfg.get("MES_TEST", 202104)
         GANANCIA_ACIERTO = _cfg.get("GANANCIA_ACIERTO", None)

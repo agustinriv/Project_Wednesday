@@ -28,11 +28,18 @@ def main():
     # Parámetros
     TRAIN_f = [202101,202102,202103,202104]
     MES_PRED  = 202106
-    best_iteration = 200
-    CORTE_OPTIMO = 10000  
+    best_iteration = 223
+    CORTE_OPTIMO = 9500  
 
     # Cargar datos
     df = cargar_datos(DATA_PATH)
+
+    # Feature Engineering
+    atributos = obtener_columnas_validas(df)
+    df = feature_engineering_lag(df, atributos, 2)
+    logger.info(f"Dataset post-FE: {df.shape}")
+    df = feature_engineering_delta(df, atributos, 2)
+    logger.info(f"Dataset post-FE: {df.shape}")
 
     # Agrego pesos
     df['clase_peso'] = 1.0
@@ -43,11 +50,6 @@ def main():
     df['clase_binaria2'] = 0
     df['clase_binaria2'] = np.where(df['clase_ternaria'] == 'CONTINUA', 0, 1)
 
-    # Feature Engineering
-    atributos = obtener_columnas_validas(df)
-    df = feature_engineering_lag(df, atributos, 2)
-    df = feature_engineering_delta(df, atributos, 2)
-
     logger.info(f"Dataset post-FE: {df.shape}")
 
     params = {
@@ -57,10 +59,11 @@ def main():
         'boost_from_average': True,
         'feature_pre_filter': False,
         'max_bin': 31,
-        "num_leaves": 288,
-        "learning_rate": 0.015946846172218667,
-        "feature_fraction": 0.35544551766215127,
-        "bagging_fraction": 0.8030415921794145,
+        "num_leaves": 174,
+        "learning_rate": 0.036408091013602206,
+        "min_data_in_leaf": 1892,
+        "feature_fraction": 0.41518080123895895,
+        "bagging_fraction": 0.6990945577012483,
         'seed': SEMILLA[0],
         'verbosity': -1
     }
@@ -90,7 +93,7 @@ def main():
         # Si no existe, creamos un id reproducible
         df_pred[ID_COL] = np.arange(len(df_pred))
 
-    X_predict = df_pred.drop(columns=['clase_ternaria', 'target'], errors='ignore')
+    X_predict = df_pred.drop(columns=['clase_ternaria', 'target', 'clase_peso','clase_binaria2'], errors='ignore')
     logger.info(f"Prediciendo sobre MES_PRED={MES_PRED} (n={len(df_pred)}) ...")
     df_pred['prob'] = model_final.predict(X_predict)
 

@@ -114,7 +114,7 @@ def feature_engineering_delta(
         return df
 
     # Aseguramos máximo 2 deltas (delta_1 y delta_2)
-    cant_delta = max(1, min(2, int(cant_delta)))
+    cant_delta = max(1, int(cant_delta))
 
     # Construcción dinámica del SELECT
     sql = ["SELECT *"]

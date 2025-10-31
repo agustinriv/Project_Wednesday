@@ -62,8 +62,6 @@ def ganancia_lgb_binary(y_pred, y_true):
     # Retornar en formato esperado por LightGBM
     return 'ganancia', ganancia_total, True  # True = higher is better
 
-
-
 def ganancia_evaluator(y_pred, y_true) -> float:
     """
     Función de evaluación personalizada para LightGBM.
@@ -95,3 +93,12 @@ def ganancia_evaluator(y_pred, y_true) -> float:
     ganancia_maxima = df_ordenado.select(pl.col('ganancia_acumulada').max()).item()
   
     return 'ganancia', ganancia_maxima, True
+
+
+def ganancia_pesos(y_pred, data):
+    weight = data.get_weight()
+    ganancia = np.where(weight == 1.00002, GANANCIA_ACIERTO, 0) - np.where(weight < 1.00002, COSTO_ESTIMULO, 0)
+    ganancia = ganancia[np.argsort(y_pred)[::-1]]
+    ganancia = np.cumsum(ganancia)
+
+    return 'gan_eval', np.max(ganancia) , True

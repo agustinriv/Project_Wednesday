@@ -1,5 +1,6 @@
 import pandas as pd
 import logging
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -62,5 +63,34 @@ def convertir_clase_ternaria_a_target(df: pd.DataFrame) -> pd.DataFrame:
     logger.info(f"  Original - CONTINUA: {n_continua_orig}, BAJA+1: {n_baja1_orig}, BAJA+2: {n_baja2_orig}")
     logger.info(f"  Binario - 0: {n_ceros}, 1: {n_unos}")
     logger.info(f"  Distribución: {n_unos/(n_ceros + n_unos)*100:.2f}% casos positivos")
+  
+    return df_result
+
+
+def convertir_clase_pesos(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    - Agrega columna peso y le asigna uno distinto a baja+1 y baja+2
+    - Crea clase binaria con el target real:
+        - 1 si BAJA+1 o BAJA+2, 0 si CONTINUA
+  
+    Args:
+        df: DataFrame con columna 'clase_ternaria'
+  
+    Returns:
+        pd.DataFrame: DataFrame con clase_peso y clase_binaria
+    """
+    # Crear copia del DataFrame para no modificar el original
+    df_result = df.copy()
+  
+    # Agrega la columna peso y asigna dependiendo la clase
+    df_result['clase_peso'] = 1.0
+    df_result.loc[df_result['clase_ternaria'] == 'BAJA+2', 'clase_peso'] = 1.00002
+    df_result.loc[df_result['clase_ternaria'] == 'BAJA+1', 'clase_peso'] = 1.00001
+
+    # Agrega clase binaria con el target correspondiente
+    df_result['clase_binaria2'] = 0
+    df_result['clase_binaria2'] = np.where(df_result['clase_ternaria'] == 'CONTINUA', 0, 1)
+  
+    logger.info(f"Conversión completada:")
   
     return df_result

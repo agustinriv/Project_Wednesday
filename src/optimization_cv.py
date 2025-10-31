@@ -9,7 +9,7 @@ from .config import (
     SEMILLA, MES_TRAIN, STUDY_NAME,
     GANANCIA_ACIERTO, COSTO_ESTIMULO, PARAMETROS_LGB
 )
-from .gain_function import ganancia_evaluator
+from .gain_function import ganancia_evaluator, ganancia_pesos
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -34,6 +34,7 @@ def objetivo_ganancia_cv(trial, df) -> float:
         'boost_from_average': True,
         'feature_pre_filter': False,
         'num_leaves': trial.suggest_int('num_leaves', PARAMETROS_LGB['num_leaves']["min"], PARAMETROS_LGB["num_leaves"]["max"]),
+        'min_data_in_leaf': trial.suggest_int('min_data_in_leaf', PARAMETROS_LGB['min_data_in_leaf']["min"], PARAMETROS_LGB["min_data_in_leaf"]["max"]),
         'learning_rate': trial.suggest_float('learning_rate', PARAMETROS_LGB['learning_rate']["min"], PARAMETROS_LGB['learning_rate']["max"], log=True),
         'feature_fraction': trial.suggest_float('feature_fraction', PARAMETROS_LGB['feature_fraction']["min"], PARAMETROS_LGB['feature_fraction']["max"]),
         'bagging_fraction': trial.suggest_float('bagging_fraction', PARAMETROS_LGB['bagging_fraction']["min"], PARAMETROS_LGB['bagging_fraction']["max"]),
@@ -139,7 +140,7 @@ def optimizar_con_cv(df, n_trials=3) -> optuna.Study:
     )
   
     # Ejecutar optimización
-    study.optimize(lambda trial: objetivo_ganancia_cv(trial, df), n_trials=n_trials)
+    study.optimize(lambda trial: objetivo_ganancia_pesos_cv(trial, df), n_trials=n_trials)
   
     # Resultados
     logger.info(f"Mejor ganancia: {study.best_value:,.0f}")
@@ -147,3 +148,71 @@ def optimizar_con_cv(df, n_trials=3) -> optuna.Study:
     logger.info(f"Mejores parámetros: {study.best_params}")
   
     return study
+
+
+def objetivo_ganancia_pesos_cv(trial, df) -> float:
+    """
+    Función objetivo para Optuna con Cross Validation.
+    Utiliza SEMILLA[0] desde configuración para reproducibilidad.
+  
+    Args:
+        trial: Trial de Optuna
+        df: DataFrame con datos
+  
+    Returns:
+        float: Ganancia promedio del CV
+    """
+    # Hiperparámetros a optimizar (desde configuración YAML)
+    params = {
+        'objective': 'binary',
+        'metric': 'custom',  # Usamos nuestra métrica personalizada
+        'boosting_type': 'gbdt',
+        'first_metric_only': True,
+        'boost_from_average': True,
+        'feature_pre_filter': False,
+        'num_leaves': trial.suggest_int('num_leaves', PARAMETROS_LGB['num_leaves']["min"], PARAMETROS_LGB["num_leaves"]["max"]),
+        'min_data_in_leaf': trial.suggest_int('min_data_in_leaf', PARAMETROS_LGB['min_data_in_leaf']["min"], PARAMETROS_LGB["min_data_in_leaf"]["max"]),
+        'learning_rate': trial.suggest_float('learning_rate', PARAMETROS_LGB['learning_rate']["min"], PARAMETROS_LGB['learning_rate']["max"], log=True),
+        'feature_fraction': trial.suggest_float('feature_fraction', PARAMETROS_LGB['feature_fraction']["min"], PARAMETROS_LGB['feature_fraction']["max"]),
+        'bagging_fraction': trial.suggest_float('bagging_fraction', PARAMETROS_LGB['bagging_fraction']["min"], PARAMETROS_LGB['bagging_fraction']["max"]),
+        'max_bin': 31,
+        'seed': SEMILLA[0],  # Desde configuración YAML
+        'verbosity': -1
+    }
+
+    # Preparar datos para CV
+    df_cv = df[df['foto_mes'].isin(MES_TRAIN)]
+
+    # Features y target
+    X_train = df_cv.drop(['clase_ternaria', 'clase_peso', 'clase_binaria2'], axis=1)
+    y_train = df_cv['clase_binaria2']
+    w_train = df_cv['clase_peso']
+  
+    # Crear dataset de LightGBM
+    dataset = lgb.Dataset(X_train, label=y_train, weight=w_train)
+  
+    # Configurar CV con semilla desde configuración
+    cv_results = lgb.cv(
+        params,
+        dataset,
+        num_boost_round=4000,
+        nfold=5,
+        seed= SEMILLA[0] if isinstance(SEMILLA, list) else SEMILLA,
+        stratified=True,
+        feval=ganancia_pesos,
+        callbacks=[lgb.early_stopping(50), lgb.log_evaluation(0)]
+    )
+  
+    # Extraer ganancia promedio y max
+    max_gan = max(cv_results['valid gan_eval-mean'])
+
+    # Mejor iteración
+    best_iteration = cv_results['valid gan_eval-mean'].index(max_gan) + 1
+
+    logger.debug(f"Trial {trial.number}: Ganancia CV = {max_gan:,.0f}")
+    logger.debug(f"Trial {trial.number}: Mejor iteración = {best_iteration}")
+
+    # Guardar iteración para análisis posterior
+    guardar_iteracion_cv(trial, max_gan, best_iteration=best_iteration)
+
+    return max_gan * 5

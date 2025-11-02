@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 from .config import *
 from .config import (
-    MES_TEST, MES_TRAIN
+    MES_TEST, MES_TRAIN,GANANCIA_ACIERTO, COSTO_ESTIMULO
 )
 
 logger = logging.getLogger(__name__)
@@ -31,11 +31,13 @@ def evaluar_en_test(df, mejores_params, best_iter=None) -> dict:
     df_train_completo = df[df['foto_mes'].isin(MES_TRAIN)]
     df_test = df[df['foto_mes'].isin(MES_TEST)]
 
-    y_test = df_test['target']
-    X_test = df_test.drop(columns=['clase_ternaria', 'target'])
-    X_train = df_train_completo.drop(columns=['clase_ternaria', 'target'])
-    y_train = df_train_completo['clase_ternaria']
-  
+    X_train = df_train_completo.drop(columns=['clase_ternaria','clase_peso','clase_binaria2'])
+    y_train = df_train_completo['clase_binaria2']
+    w_train = df_train_completo['clase_peso']
+    
+    X_test = df_test.drop(['clase_ternaria', 'clase_peso','clase_binaria2'], axis=1)
+    y_test_class = df_test['clase_ternaria']
+
     # Entrenar modelo con mejores parámetros
     
     params = mejores_params.copy()
@@ -51,7 +53,7 @@ def evaluar_en_test(df, mejores_params, best_iter=None) -> dict:
     })
     
     train_data = lgb.Dataset(X_train,
-                            label=y_train)
+                            label=y_train, weight=w_train)
 
     best_iter = int(best_iter)
   
@@ -63,7 +65,7 @@ def evaluar_en_test(df, mejores_params, best_iter=None) -> dict:
     y_pred_test = model_test.predict(X_test)
 
     # Ganancia y orden
-    ganancia = np.where(y_test == 1, GANANCIA_ACIERTO, -COSTO_ESTIMULO)
+    ganancia = np.where(y_test_class == 'BAJA+2', GANANCIA_ACIERTO, 0) - np.where(y_test_class != 'BAJA+2', COSTO_ESTIMULO, 0)
     order = np.argsort(y_pred_test)[::-1] #ordeno por probabilidad
     ganancia_ord = ganancia[order]
     ganancia_cum = np.cumsum(ganancia_ord)
@@ -95,3 +97,4 @@ def evaluar_en_test(df, mejores_params, best_iter=None) -> dict:
     plt.close()
 
     return {"ganancia_máxima": ganancia_max, "corte_optimo": corte_optimo}
+

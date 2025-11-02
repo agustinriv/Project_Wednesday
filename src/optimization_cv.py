@@ -14,7 +14,7 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-def objetivo_ganancia_cv(trial, df) -> float:
+def objetivo_ganancia_cv(t) -> float:
     """
     Función objetivo para Optuna con Cross Validation.
     Utiliza SEMILLA[0] desde configuración para reproducibilidad.

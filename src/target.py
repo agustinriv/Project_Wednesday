@@ -4,7 +4,7 @@ import duckdb
 
 logger = logging.getLogger(__name__)
 
-def clase_ternaria(csv_path: str = "~/buckets/b1/datasets/competencia_01_crudo.csv",
+def clase_ternaria(csv_path: str = "~/buckets/b1/datasets/competencia_02_crudo.csv.gz",
                             con: duckdb.DuckDBPyConnection | None = None) -> duckdb.DuckDBPyConnection:
     """
     Crea/repone las tablas competencia_01_crudo y competencia_01 en DuckDB
@@ -13,10 +13,6 @@ def clase_ternaria(csv_path: str = "~/buckets/b1/datasets/competencia_01_crudo.c
     """
     if con is None:
         con = duckdb.connect(database=":memory:")
-
-    # Asegurar que el archivo exista (mensaje claro si no)
-    if not Path(csv_path).exists():
-        raise FileNotFoundError(f"No se encontró el archivo CSV en: {csv_path}")
 
     # 1) Tabla cruda desde el CSV
     con.execute(f"""
@@ -66,7 +62,9 @@ def clase_ternaria(csv_path: str = "~/buckets/b1/datasets/competencia_01_crudo.c
           ON w.numero_de_cliente = d.numero_de_cliente
          AND w.foto_mes = CAST(d.foto_mes AS INT)
     """)
-    return con
+    df = con.execute("SELECT * FROM competencia_01").df()
+    con.close()
+    return df
 
 
 def pivot_clase_ternaria(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:

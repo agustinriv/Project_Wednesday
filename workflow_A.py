@@ -39,8 +39,8 @@ def main():
     df = cargar_datos(DATA_PATH)
 
     # 2. Target y Pivot (por si necesito)
-    df = clase_ternaria("~/buckets/b1/datasets/competencia_01_crudo.csv")
-    #df = pivot_clase_ternaria(con)
+    df = clase_ternaria("~/buckets/b1/datasets/competencia_01_crudo.csv.gz")
+    #df = pivot_clase_ternaria(df)
 
     #3. Eliminación Features
     df.drop(columns=['mprestamos_personales', 'cprestamos_personales'], inplace=True)

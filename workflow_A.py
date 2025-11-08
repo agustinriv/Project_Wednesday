@@ -6,10 +6,10 @@ import logging
 logging.getLogger("matplotlib").setLevel(logging.WARNING)
 logging.getLogger("matplotlib.font_manager").setLevel(logging.WARNING)
 
-from src.loader import cargar_datos
-from src.features import feature_engineering_lag, feature_engineering_delta, obtener_columnas_validas
+#from src.loader import cargar_datos
+from src.features import obtener_columnas_validas, feature_engineering_lag_delta
 from src.data_drifting import drift_inf, ind
-from src.target import clase_ternaria, pivot_clase_ternaria
+from src.target import clase_ternaria
 from src.fe_intrames import fe_intrames
 
 from src.config import *
@@ -36,10 +36,10 @@ def main():
     logger.info("=== INICIANDO PIPELINE CON CONFIGURACIÓN YAML ===")
   
     # 1. Cargar datos
-    df = cargar_datos(DATA_PATH)
+    #df = cargar_datos(DATA_PATH)
 
     # 2. Target y Pivot (por si necesito)
-    df = clase_ternaria("~/buckets/b1/datasets/competencia_01_crudo.csv.gz")
+    df = clase_ternaria(df)
     #df = pivot_clase_ternaria(df)
 
     #3. Eliminación Features
@@ -60,10 +60,18 @@ def main():
 
     #7. Feature Engineering Histórico
     atributos = obtener_columnas_validas(df)
+    df = feature_engineering_lag_delta(
+        df=df,
+        columnas=atributos,
+        cant_lag=2,
+        cant_delta=2
+    )
+    """
     cant_lag = 2
     cant_delta = 2
     df = feature_engineering_lag(df, atributos, cant_lag)
-    df = feature_engineering_delta(df_fe, atributos, cant_delta)  
+    df = feature_engineering_delta(df, atributos, cant_delta)
+    """  
     logger.info(f"Etapa completada: {df.shape}")
 
     #8. Output en parquet

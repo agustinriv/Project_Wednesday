@@ -4,31 +4,42 @@ import duckdb
 
 logger = logging.getLogger(__name__)
 
-def clase_ternaria(csv_path: str = "~/buckets/b1/datasets/competencia_02_crudo.csv.gz",
-                            con: duckdb.DuckDBPyConnection | None = None) -> duckdb.DuckDBPyConnection:
+import duckdb
+import os
+import pandas as pd
+
+def clase_ternaria(
+    csv_path: str = "~/buckets/b1/datasets/competencia_02_crudo.csv.gz",
+    con: duckdb.DuckDBPyConnection | None = None,
+    table_prefix: str = "competencia_02",
+) -> pd.DataFrame:
     """
-    Crea/repone las tablas competencia_01_crudo y competencia_01 en DuckDB
-    a partir del CSV indicado, replicando la lógica SQL provista.
-    Devuelve la conexión (para reuso).
+    Lee el CSV indicado, crea las tablas {table_prefix}_crudo y {table_prefix}
+    en DuckDB y devuelve un DataFrame con la tabla procesada que incluye clase_ternaria.
     """
+    csv_path = os.path.expanduser(csv_path)
+
+    # Crear conexión si no se pasa una
+    own_con = False
     if con is None:
         con = duckdb.connect(database=":memory:")
+        own_con = True
 
-    # 1) Tabla cruda desde el CSV
+    # 1) Crear tabla cruda
     con.execute(f"""
-        CREATE OR REPLACE TABLE competencia_01_crudo AS
+        CREATE OR REPLACE TABLE {table_prefix}_crudo AS
         SELECT * FROM read_csv_auto('{csv_path}')
     """)
 
-    # 2) Tabla procesada con clase_ternaria (CTEs b, w, mx)
-    con.execute("""
-        CREATE OR REPLACE TABLE competencia_01 AS
+    # 2) Crear tabla con clase_ternaria
+    con.execute(f"""
+        CREATE OR REPLACE TABLE {table_prefix} AS
         WITH b AS (
           SELECT
             numero_de_cliente,
             CAST(foto_mes AS INT) AS foto_mes,
             (CAST(foto_mes/100 AS INT) * 12) + (CAST(foto_mes AS INT) % 100) AS periodo0
-          FROM competencia_01_crudo
+          FROM {table_prefix}_crudo
         ),
         w AS (
           SELECT
@@ -57,13 +68,19 @@ def clase_ternaria(csv_path: str = "~/buckets/b1/datasets/competencia_02_crudo.c
               THEN 'CONTINUA'
             ELSE NULL
           END AS clase_ternaria
-        FROM competencia_01_crudo d
+        FROM {table_prefix}_crudo d
         LEFT JOIN w
           ON w.numero_de_cliente = d.numero_de_cliente
          AND w.foto_mes = CAST(d.foto_mes AS INT)
     """)
-    df = con.execute("SELECT * FROM competencia_01").df()
-    con.close()
+
+    # 3) Devolver como DataFrame
+    df = con.execute(f"SELECT * FROM {table_prefix}").df()
+
+    # Cierro solo si la conexión fue creada dentro de la función
+    if own_con:
+        con.close()
+
     return df
 
 
